@@ -21,17 +21,23 @@ RUN apt-get update && \
         libxml2-dev libxslt1-dev \
         libpq-dev default-libmysqlclient-dev \
         libyaml-dev libpng-dev libjpeg-dev \
-        linux-libc-dev && \
+        linux-libc-dev \
+        nodejs npm && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN wget -qO /bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.3/ttyd.x86_64 && \
+RUN wget -qO /bin/ttyd https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 && \
     chmod +x /bin/ttyd
+
+WORKDIR /app
+
+COPY package.json ./package.json
+RUN npm install --omit=dev
+
+COPY server.js ./server.js
 
 RUN echo "fastfetch" >> /root/.bashrc && \
     echo "cd /root" >> /root/.bashrc
 
-EXPOSE 7681
+EXPOSE 10000
 
-CMD ["/bin/bash", "-c", "\
-    echo \"export PS1='\\[\\033[01;31m\\]$USERNAME@kali\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\$ '\" >> /root/.bashrc && \
-    /bin/ttyd -p 7681 -c $USERNAME:$PASSWORD /bin/bash"]
+CMD ["npm", "start"]
